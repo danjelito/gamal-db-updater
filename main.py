@@ -53,7 +53,7 @@ if (df_db is not None) and (df_daily is not None):
         df_merged.to_excel(writer, sheet_name='Sheet1', index=False)
 
         # Close the Pandas Excel writer and output the Excel file to the buffer
-        writer.save()
+        writer.close()
 
         st.success('Download siap!', icon="✅")
         
