@@ -35,7 +35,7 @@ if (df_db is not None) and (df_daily is not None):
     
     # display result
     st.subheader('Langkah 2: Masukkan Rekap di Bawah ke KPI Ads')
-    summary_st= st.dataframe(data= summary, width= 600)
+    summary_st= st.dataframe(data= summary, width= 900)
 
     # download merged DB
     st.subheader('Langkah 3: Download Full Database')
