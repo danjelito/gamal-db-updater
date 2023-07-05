@@ -31,33 +31,6 @@ def clean_telepon_col(df, telepon_column):
     return np.select(conditions, choices)
 
 
-def clean_platform(df, platform_column):
-    """
-    Clean platform column.
-    """
-
-    data = df[platform_column].str.replace("_", " ").str.title().str.strip()
-    conditions = [
-        data == "Shopee",
-        data == "Tokopedia",
-        data == "Tiktok",
-        data == "Lazada",
-        data.isin(["Webstore", "Website", "Web", "Tada", "Internal"]),  # Website
-        data.isin(["Social Media", "Wa"]),  # WA
-        data.isin(["Reseller"]),  # Reseller
-    ]
-    choices = [
-        "Shopee",
-        "Tokopedia",
-        "Tiktok",
-        "Lazada",
-        "Website",
-        "WA",
-        "Reseller",
-    ]
-    return np.select(conditions, choices, default=data)
-
-
 def get_nc_ro_boolean(df, df_db, telepon_column, flag):
     """
     Function that checks if the telepon has appared in main DB.
@@ -75,15 +48,45 @@ def get_nc_ro_boolean(df, df_db, telepon_column, flag):
         raise Exception("flag unrecognized")
 
 
-def clean_df_daily(df_daily, df_db):
+def clean_platform(df, platform_column, no_pesanan_col):
+    """
+    Clean platform column.
+    """
+
+    platform = df[platform_column].str.replace("_", " ").str.title().str.strip()
+    order_no= df[no_pesanan_col].str.replace("_", " ").str.lower().str.strip()
+
+    conditions = [
+        order_no.str.startswith('gm'), # reseller
+        platform == "Shopee",
+        platform == "Tokopedia",
+        platform == "Tiktok",
+        platform == "Lazada",
+        platform.isin(["Webstore", "Website", "Web", "Tada", "Internal"]),  # Website
+        platform.isin(["Social Media", "Wa"]),  # WA
+        platform.isin(["Reseller"]),  # Reseller
+    ]
+    choices = [
+        "Reseller",
+        "Shopee",
+        "Tokopedia",
+        "Tiktok",
+        "Lazada",
+        "Website",
+        "WA",
+        "Reseller",
+    ]
+    return np.select(conditions, choices, default=platform)
+
+
+def clean_df_daily(daily, db):
     """
     Clean DF daily.
     """
 
-    df_daily_cleaned = (
-        df_daily
+    result = (daily
         # exclude Bikinganteng_id
-        .loc[~(df_daily["Nama toko"].isin(["Bikinganteng_id", "bikinganteng_id"]))]
+        .loc[~(daily["Nama toko"].isin(["Bikinganteng_id", "bikinganteng_id"]))]
         # exclude status pending
         .loc[lambda df_: ~(df_["Status MP"].isin(["Pending"]))]
         # make the column name the same with the column in db
@@ -92,18 +95,18 @@ def clean_df_daily(df_daily, df_db):
             # clean telepon
             Telepon=lambda df_: clean_telepon_col(df_, "Telepon"),
             # clean platform
-            Platform=lambda df_: clean_platform(df_, "Platform"),
+            Platform=lambda df_: clean_platform(df_, "Platform", 'No. Pesanan'),
         )
         .assign(
             # if telepon isna, replace that with no.pesanan
             Telepon_placeholder=lambda df_: np.where(
                 df_["Telepon"] == "nan", df_["No. Pesanan"], df_["Telepon"]),
             # get nc ro
-            is_nc=lambda df_: get_nc_ro_boolean(df_, df_db, "Telepon_placeholder", "NC"),
-            is_ro=lambda df_: get_nc_ro_boolean(df_, df_db, "Telepon_placeholder", "RO"),
+            is_nc=lambda df_: get_nc_ro_boolean(df_, db, "Telepon_placeholder", "NC"),
+            is_ro=lambda df_: get_nc_ro_boolean(df_, db, "Telepon_placeholder", "RO"),
         )
     )
-    return df_daily_cleaned
+    return result
 
 
 def get_num_order_per_plaform(df, no_pesanan_column, platform_column, platform):

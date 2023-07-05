@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from src import module
 
 st.title('Gamal Daily Sales Recap')
 
@@ -24,13 +23,12 @@ if (df_db is not None) and (df_daily is not None):
     db_date= df_db['Tanggal'].max() - pd.Timedelta('1 minute')
     daily_date= df_daily['Tanggal'].max()
     if db_date > daily_date:
-        st.error('Tanggal daily lebih awal daripada tanggal DB',
-                  icon="🚨")
+        st.error('Tanggal daily lebih awal daripada tanggal DB', icon="🚨")
 
     # do the calculation
     data_load_state = st.text('Menghitung...')
-    df_daily_clean = module.clean_df_daily(df_daily, df_db)
-    summary = module.get_summary_per_day(df_daily_clean)
+    df_daily_clean = clean_df_daily(df_daily, df_db)
+    summary = get_summary_per_day(df_daily_clean)
     st.success('Perhitungan selesai!', icon="✅")
     
     # display result
