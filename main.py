@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-
+from src import module
 
 st.title('Gamal Daily Sales Recap')
 
@@ -27,8 +27,8 @@ if (df_db is not None) and (df_daily is not None):
 
     # do the calculation
     data_load_state = st.text('Menghitung...')
-    df_daily_clean = clean_df_daily(df_daily, df_db)
-    summary = get_summary_per_day(df_daily_clean)
+    df_daily_clean = module.clean_df_daily(df_daily, df_db)
+    summary = module.get_summary_per_day(df_daily_clean)
     st.success('Perhitungan selesai!', icon="✅")
     
     # display result
@@ -44,13 +44,11 @@ if (df_db is not None) and (df_daily is not None):
     date= df_daily_clean['Tanggal'].max().strftime('%d %b %Y')
     filename= f'DB - {date}.xlsx'
 
+    # write dataframe
     import io
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        # Write each dataframe to a different worksheet.
         df_merged.to_excel(writer, sheet_name='Sheet1', index=False)
-
-        # Close the Pandas Excel writer and output the Excel file to the buffer
         writer.close()
 
         st.success('Download siap!', icon="✅")
