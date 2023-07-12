@@ -87,8 +87,13 @@ def clean_df_daily(daily, db):
     result = (daily
         # exclude Bikinganteng_id
         .loc[~(daily["Nama toko"].isin(["Bikinganteng_id", "bikinganteng_id"]))]
+        
         # exclude status pending
         .loc[lambda df_: ~(df_["Status MP"].isin(["Pending"]))]
+        
+        # exclude no. pesanan SO...
+        .loc[lambda df_: ~(df_['No. Pesanan'].str.lower().str.startswith('so'))]
+        
         # make the column name the same with the column in db
         .rename(columns={"Kota/Kabupaten": "KOTA", "No. Telepon": "Telepon"})
         .assign(
